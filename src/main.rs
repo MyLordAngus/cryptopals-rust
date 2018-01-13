@@ -27,31 +27,56 @@ fn byte_to_base64_char(byte: u8) -> u8 {
         0 ... 0b011001 => 'A' as u8 + byte,
         0b011010 ... 0b110011 => 'a' as u8 + (byte - 0b011010),
         0b110100 ... 0b111101 => '0' as u8 + (byte - 0b110100),
-        0b111110 => '-' as u8,
-        _ => '_' as u8
+        0b111110 => '+' as u8,
+        _ => '/' as u8
     }
 }
 
 fn convert(hex64 : &[u8]) -> Vec<u8> {
     let mut base64 = vec![];
 
-    let hex64_size = hex64.len();
-    let mut hex64_iter = hex64.into_iter();
-    let mut hex64_16bits: u32;
+    let mut hex64_chunks = hex64.chunks(3);
+    loop {
+        let hex64_slice = match hex64_chunks.next() {
+            Some(s) => s,
+            None => break,
+        };
 
-    let mut i = 0;
-    while i < hex64_size {
-        hex64_16bits = ((*hex64_iter.next().unwrap() as u32) << 16) & 0xff0000
-                       | ((*hex64_iter.next().unwrap() as u32) << 8) & 0x00ff00
-                       | (*hex64_iter.next().unwrap() as u32) & 0x0000ff;
+        match hex64_slice.len() {
+            3 => {
+                let hex64_16bits = ((hex64_slice[0] as u32) << 16) & 0xff0000
+                                   | ((hex64_slice[1] as u32) << 8) & 0x00ff00
+                                   | (hex64_slice[2] as u32) & 0x0000ff;
 
-        for j in 0..4 {
-            let c = byte_to_base64_char((hex64_16bits >> 18 - (j * 6) & 0x3f) as u8);
-            base64.push(c);
+                for j in 0..4 {
+                    let c = byte_to_base64_char((hex64_16bits >> 18 - (j * 6) & 0x3f) as u8);
+                    base64.push(c);
+                }
+            },
+            2 => {
+                let hex64_16bits = (((hex64_slice[0] as u32) << 8) & 0x00ff00
+                                   | ((hex64_slice[1] as u32)) & 0x0000ff)
+                                   << 2;
+
+                for j in 0..3 {
+                    let c = byte_to_base64_char((hex64_16bits >> 12 - (j * 6) & 0x3f) as u8);
+                    base64.push(c);
+                }
+                base64.push('=' as u8);
+            },
+            1 => {
+                let hex64_16bits = (((hex64_slice[0] as u32)) & 0x0000ff)
+                                   << 4;
+
+                for j in 0..2 {
+                    let c = byte_to_base64_char((hex64_16bits >> 6 - (j * 6) & 0x3f) as u8);
+                    base64.push(c);
+                }
+                base64.push('=' as u8);
+                base64.push('=' as u8);
+            },
+            _ => panic!("this case shall not happened !"),
         }
-
-
-        i += 3;
     }
 
     base64
