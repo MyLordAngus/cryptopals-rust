@@ -11,3 +11,16 @@ fn run_challenge1()
 	assert_eq!(output.stdout,
 	           "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t\n".as_bytes());
 }
+
+#[test]
+fn run_challenge2()
+{
+	let output = Command::new("./target/debug/set1_challenge2")
+	                     .arg("1c0111001f010100061a024b53535009181c")
+	                     .arg("686974207468652062756c6c277320657965")
+	                     .output()
+	                     .expect("failed to run integration test");
+
+	assert_eq!(output.stdout,
+	           "746865206b696420646f6e277420706c6179\n".as_bytes());
+}
