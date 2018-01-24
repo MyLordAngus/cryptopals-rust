@@ -75,3 +75,15 @@ pub fn fixed_xor(hex: &[u8], key: &[u8]) -> Result<Vec<u8>, ()>
 
 	Ok(xor)
 }
+
+pub fn single_char_xor(hex: &[u8], key: u8) -> Vec<u8>
+{
+	let mut xor: Vec<u8> = Vec::new();
+	let mut iter = hex.iter();
+
+	while let Some(value) = iter.next() {
+		xor.push(value ^ key);
+	}
+
+	xor
+}
