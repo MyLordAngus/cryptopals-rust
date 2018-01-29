@@ -52,6 +52,7 @@ pub fn estimate_english_sentence(s: &str) -> u32
 	 ('x', 1),
 	 ('y', 9),
 	 ('z', 1),
+	 (' ', 60),
 	].iter().cloned().collect();
 
 	while let Some(c) = chars.next() {
@@ -60,8 +61,8 @@ pub fn estimate_english_sentence(s: &str) -> u32
 			return 0;
 		}
 
-		// do not count non alphabetic character
-		if ! c.is_alphabetic() {
+		// do not count non alphabetic or space character
+		if ! c.is_alphabetic() && c != ' ' {
 			continue;
 		}
 

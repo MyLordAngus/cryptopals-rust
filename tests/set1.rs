@@ -36,3 +36,15 @@ fn run_challenge3()
 	assert_eq!(output.stdout,
 	           "Cooking MC's like a pound of bacon\n".as_bytes());
 }
+
+#[test]
+fn run_challenge4()
+{
+	let output = Command::new("./target/debug/set1_challenge4")
+	                     .arg("assets/set1_challenge4.txt")
+	                     .output()
+	                     .expect("failed to run integration test");
+
+	assert_eq!(output.stdout,
+	           "Now that the party is jumping\n\n".as_bytes());
+}
