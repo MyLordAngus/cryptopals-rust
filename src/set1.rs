@@ -87,3 +87,32 @@ pub fn single_char_xor(hex: &[u8], key: u8) -> Vec<u8>
 
 	xor
 }
+
+pub fn repeating_xor(buf: &[u8], key: &[u8]) -> Vec<u8>
+{
+	let cycle = key.iter().cycle();
+	let mut zip = buf.iter().zip(cycle);
+
+	let mut result :Vec<u8> = vec![];
+
+	while let Some(v) = zip.next() {
+		result.push(v.0 ^ v.1);
+	}
+
+	result
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn repeating_xor_test()
+	{
+		let buf = vec![0x01, 0x02, 0xa0, 0xff];
+		let key = vec![0x01, 0xff, 0x01];
+
+		assert_eq!(repeating_xor(&buf, &key),
+		           vec![0x00, 0xfd, 0xa1, 0xfe]);
+	}
+}

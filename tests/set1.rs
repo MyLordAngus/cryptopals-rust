@@ -48,3 +48,14 @@ fn run_challenge4()
 	assert_eq!(output.stdout,
 	           "Now that the party is jumping\n\n".as_bytes());
 }
+
+#[test]
+fn run_challenge5()
+{
+	let output = Command::new("./target/debug/set1_challenge5")
+	                     .output()
+	                     .expect("failed to run integration test");
+
+	assert_eq!(output.stdout,
+	           "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20690a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f\n".as_bytes());
+}
