@@ -60,6 +60,72 @@ pub fn base64_encode(hex: &[u8]) -> Vec<u8>
 	base64
 }
 
+pub fn u32_to_u8_slice(four_bytes: u32) -> [u8; 4]
+{
+	let mut result: [u8; 4] = [0, 0, 0, 0];
+
+	for i in 0..4 {
+		result[i] = ((((four_bytes << (i * 8)) & 0xff000000) >> 24)
+		             & 0xff) as u8;
+	}
+
+	result
+}
+
+pub fn base64_decode(buf: &str) -> Result<Vec<u8>, &'static str>
+{
+	let mut result: Vec<u8> = vec![];
+	let mut chunks = buf.as_bytes().chunks(4);
+
+	// base64 buffer must be 4 characters-aligned
+	if buf.len() % 4 != 0 {
+		return Err("non 4-characters aligned base64 buffer");
+	}
+
+	while let Some(four_chars) = chunks.next() {
+		if four_chars[0] == '=' as u8 || four_chars[1] == '=' as u8 {
+			return Err("use of '=' in a non-allowed position");
+		}
+
+		let mut three_bytes: u32 = 0;
+		let mut bytes_count: usize = 1;
+
+		let mut four_chars_iter = four_chars.iter();
+		while let Some(c) = four_chars_iter.next() {
+			if *c >= 'A' as u8 && *c <= 'Z' as u8 {
+				let byte: u8 = 0b000000 + (c - 'A' as u8);
+				three_bytes = (three_bytes << 6) | byte as u32;
+			} else if *c >= 'a' as u8 && *c <= 'z' as u8 {
+				let byte: u8 = 0b011010 + (c - 'a' as u8);
+				three_bytes = (three_bytes << 6) | byte as u32;
+			} else if *c >= '0' as u8 && *c <= '9' as u8 {
+				let byte: u8 = 0b110100 + (c - '0' as u8);
+				three_bytes = (three_bytes << 6) | byte as u32;
+			} else if *c == '+' as u8 {
+				let byte: u8 = 0b111110;
+				three_bytes = (three_bytes << 6) | byte as u32;
+			} else if *c == '/' as u8 {
+				let byte: u8 = 0b111111;
+				three_bytes = (three_bytes << 6) | byte as u32;
+
+			// special alignment character
+			} else if *c == '=' as u8 {
+				three_bytes = three_bytes >> 2;
+				bytes_count += 1;
+
+			// no other character is allowed in base64 encoding
+			} else {
+				return Err("unparsable character in base64 buffer");
+			}
+		}
+
+		let three_bytes = u32_to_u8_slice(three_bytes);
+		result.extend_from_slice(&three_bytes[bytes_count..]);
+	}
+
+	Ok(result)
+}
+
 pub fn fixed_xor(hex: &[u8], key: &[u8]) -> Result<Vec<u8>, ()>
 {
 	if hex.len() != key.len() {
@@ -102,6 +168,22 @@ pub fn repeating_xor(buf: &[u8], key: &[u8]) -> Vec<u8>
 	result
 }
 
+pub fn hamming_distance(u1: &[u8], u2: &[u8]) -> u8
+{
+	let mut result: u8 = 0;
+	let mut zip = u1.iter().zip(u2);
+
+	while let Some(t) = zip.next() {
+		for i in 0..8 {
+			if (t.0 >> i) & 0x01u8 != (t.1 >> i) & 0x01u8 {
+				result += 1;
+			}
+		}
+	}
+
+	result
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -115,4 +197,43 @@ mod tests {
 		assert_eq!(repeating_xor(&buf, &key),
 		           vec![0x00, 0xfd, 0xa1, 0xfe]);
 	}
+
+	#[test]
+	fn u32_to_u8_slice_test()
+	{
+		let slice = [0x12, 0x34, 0x56, 0x78];
+		assert_eq!(u32_to_u8_slice(0x12345678), slice);
+	}
+
+	#[test]
+	fn base64_decode_test()
+	{
+		assert_eq!(base64_decode("abcd0123"),
+		           Ok(vec![0x69, 0xb7, 0x1d, 0xd3, 0x5d, 0xb7]));
+		assert_eq!(base64_decode("abcd012="),
+		           Ok(vec![0x69, 0xb7, 0x1d, 0xd3, 0x5d]));
+		assert_eq!(base64_decode("abcd01=="),
+		           Ok(vec![0x69, 0xb7, 0x1d, 0xd3]));
+
+		// wrong usage of '=' character
+		assert!(base64_decode("abcd0===").is_err());
+
+		// non 4-characters aligned string
+		assert!(base64_decode("abcd0").is_err());
+	}
+
+	#[test]
+	fn hamming_distance_test()
+	{
+		assert_eq!(hamming_distance(&[0x00], &[0xff]), 8);
+		assert_eq!(hamming_distance(&[0x0f], &[0xf0]), 8);
+		assert_eq!(hamming_distance(&[0x0f], &[0xff]), 4);
+		assert_eq!(hamming_distance(&[0xf0], &[0xff]), 4);
+
+		assert_eq!(hamming_distance(&[0xf0, 0xff], &[0xff, 0xf0]), 8);
+
+		assert_eq!(hamming_distance("this is a test".as_bytes(),
+		                            "wokka wokka!!!".as_bytes()), 37);
+	}
+
 }
