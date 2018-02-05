@@ -1,17 +1,21 @@
-pub fn hamming_distance(u1: &[u8], u2: &[u8]) -> u8
+pub fn hamming_distance_byte(a: u8, b: u8) -> u8
 {
 	let mut result: u8 = 0;
-	let mut zip = u1.iter().zip(u2);
 
-	while let Some(t) = zip.next() {
-		for i in 0..8 {
-			if (t.0 >> i) & 0x01u8 != (t.1 >> i) & 0x01u8 {
-				result += 1;
-			}
+	for i in 0..8 {
+		if (a >> i) & 0x01u8 != (b >> i) & 0x01u8 {
+			result += 1;
 		}
 	}
 
 	result
+}
+
+pub fn hamming_distance(u1: &[u8], u2: &[u8]) -> u8
+{
+	u1.iter().zip(u2).map(|(a, b)| {
+		hamming_distance_byte(*a, *b)
+	}).sum()
 }
 
 #[cfg(test)]

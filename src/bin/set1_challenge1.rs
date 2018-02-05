@@ -1,8 +1,10 @@
 extern crate cryptopals;
 
 use std::env;
-use cryptopals::set1;
-use cryptopals::utils;
+use std::process;
+
+use cryptopals::ascii;
+use cryptopals::base64;
 
 fn usage()
 {
@@ -13,17 +15,17 @@ fn main()
 {
 	if env::args_os().count() != 2 {
 		usage();
-		std::process::exit(1);
+		process::exit(1);
 	}
 
 	let hex_os_str = env::args_os().nth(1).unwrap();
 	let hex_str = hex_os_str.to_str().unwrap();
-	let hex_buf = utils::str_to_byte_array(hex_str).unwrap_or_else(|_: ()| {
+	let hex_buf = ascii::str_to_byte_array(hex_str).unwrap_or_else(|_: ()| {
 		usage();
-		std::process::exit(1);
+		process::exit(1);
 	});
 
-	let base64 = set1::base64_encode(hex_buf.as_slice());
+	let base64 = base64::base64_encode(hex_buf.as_slice());
 	for c in base64 {
 		print!("{}", c as char)
 	}

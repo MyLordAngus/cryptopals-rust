@@ -5,8 +5,11 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::process;
-use cryptopals::set1;
-use cryptopals::utils;
+
+use cryptopals::ascii;
+use cryptopals::base64;
+use cryptopals::bit_utils;
+use cryptopals::xor;
 
 fn main()
 {
@@ -31,7 +34,7 @@ fn main()
 	}
 	base64_buffer = base64_buffer.replace("\n", "");
 
-	let buffer = set1::base64_decode(&base64_buffer).unwrap_or_else(|err: &str| {
+	let buffer = base64::base64_decode(&base64_buffer).unwrap_or_else(|err: &str| {
 		println!("error during base64 parsing: {}", err);
 		process::exit(1);
 	});
@@ -49,7 +52,7 @@ fn main()
 		// normalize it by dividing by size of block
 		for i in 0..chunks.len() {
 			let mut distance =
-			    set1::hamming_distance(chunks[0], chunks[i]) as f32;
+			    bit_utils::hamming_distance(chunks[0], chunks[i]) as f32;
 			distances.push(distance / keysize as f32);
 		}
 
@@ -84,9 +87,9 @@ fn main()
 		let mut best_char: char = ' ';
 		let mut best_estimation = 0;
 		for c in 0..255 {
-			let decoded = set1::single_char_xor(&key_byte_buffer, c);
+			let decoded = xor::single_char_xor(&key_byte_buffer, c);
 			if let Ok(string) = String::from_utf8(decoded) {
-				let estimation = utils::estimate_english_sentence(&string);
+				let estimation = ascii::estimate_english_sentence(&string);
 				if estimation > best_estimation {
 					best_char = c as char;
 					best_estimation = estimation;
@@ -97,16 +100,14 @@ fn main()
 		key.push(best_char as u8);
 	}
 
-	for u in &key {
-		print!("{}", *u as char);
-	}
+	key.iter().for_each(|&c| print!("{}", c as char));
 	println!();
 
 	// --------------------------------------------------------------------
 	// decode the buffer with the key
 	// --------------------------------------------------------------------
 
-	let decoded = set1::repeating_xor(&buffer, &key);
+	let decoded = xor::repeating_xor(&buffer, &key);
 	for c in 0..45 {
 		print!("{}", decoded[c] as char);
 	}

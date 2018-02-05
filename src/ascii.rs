@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::ascii::AsciiExt;
 
 pub fn str_to_byte_array(s: &str) -> Result<Vec<u8>, ()>
 {

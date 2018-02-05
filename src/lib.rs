@@ -1,3 +1,4 @@
-pub mod utils;
-
-pub mod set1;
+pub mod ascii;
+pub mod base64;
+pub mod bit_utils;
+pub mod xor;
