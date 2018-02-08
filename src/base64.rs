@@ -85,13 +85,13 @@ fn u32_to_u8_slice(four_bytes: u32) -> [u8; 4]
 pub fn base64_decode(buf: &str) -> Result<Vec<u8>, &'static str>
 {
 	let mut result: Vec<u8> = vec![];
-	let mut chunks = buf.as_bytes().chunks(4);
 
 	// base64 buffer must be 4 characters-aligned
 	if buf.len() % 4 != 0 {
 		return Err("non 4-characters aligned base64 buffer");
 	}
 
+	let mut chunks = buf.as_bytes().chunks(4);
 	while let Some(four_chars) = chunks.next() {
 		if four_chars[0] == '=' as u8 || four_chars[1] == '=' as u8 {
 			return Err("use of '=' in a non-allowed position");
