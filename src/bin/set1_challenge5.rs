@@ -1,6 +1,6 @@
 extern crate cryptopals;
 
-use cryptopals::xor;
+use cryptopals::cryptography::xor;
 
 fn main()
 {

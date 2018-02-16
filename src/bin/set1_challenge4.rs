@@ -7,7 +7,7 @@ use std::io::BufRead;
 use std::process;
 
 use cryptopals::ascii;
-use cryptopals::xor;
+use cryptopals::cryptography::xor;
 
 fn usage()
 {

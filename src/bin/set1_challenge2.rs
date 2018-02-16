@@ -4,7 +4,7 @@ use std::env;
 use std::process;
 
 use cryptopals::ascii;
-use cryptopals::xor;
+use cryptopals::cryptography::xor;
 
 fn usage()
 {

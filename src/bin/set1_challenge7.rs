@@ -1,4 +1,3 @@
-extern crate openssl;
 extern crate cryptopals;
 
 use std::env;
@@ -7,9 +6,8 @@ use std::fs::File;
 use std::io::Read;
 use std::process;
 
-use openssl::symm::{decrypt, Cipher};
-
 use cryptopals::base64;
+use cryptopals::cryptography::openssl_lib;
 
 fn main()
 {
@@ -39,10 +37,9 @@ fn main()
 		process::exit(1);
 	});
 
-	let cipher = Cipher::aes_128_ecb();
 	let key = "YELLOW SUBMARINE".as_bytes();
 
-	let decoded = decrypt(cipher, key, None, &buffer).unwrap_or_else(|_| {
+	let decoded = openssl_lib::aes_decrypt(key, None, &buffer).unwrap_or_else(|_| {
 		println!("error while decoding buffer");
 		process::exit(1);
 	});

@@ -9,7 +9,7 @@ use std::process;
 use cryptopals::ascii;
 use cryptopals::base64;
 use cryptopals::bit_utils;
-use cryptopals::xor;
+use cryptopals::cryptography::xor;
 
 fn main()
 {
