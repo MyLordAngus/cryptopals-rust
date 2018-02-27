@@ -39,7 +39,7 @@ fn main()
 
 	let key = "YELLOW SUBMARINE".as_bytes();
 
-	let decoded = openssl_lib::aes_decrypt(key, None, &buffer).unwrap_or_else(|_| {
+	let decoded = openssl_lib::aes_ecb_decrypt(key, &buffer).unwrap_or_else(|_| {
 		println!("error while decoding buffer");
 		process::exit(1);
 	});
