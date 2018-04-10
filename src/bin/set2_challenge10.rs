@@ -32,9 +32,9 @@ fn main()
 	});
 
 	let encrypted = aes::emulate_cbc_encrypt(
-	  "YELLOW SUBMARINE".as_bytes(), &[0x00; 16], &contents).unwrap();
+	  b"YELLOW SUBMARINE", &[0x00; 16], &contents).unwrap();
 
-	file::write_base64_fmt_file(&encrypted, "output.txt")
+	file::write_base64_fmt_file(&encrypted, "/tmp/output.txt")
 	  .unwrap_or_else(|_err| {
 		  println!("error while writing result to output file");
 		  process::exit(1);

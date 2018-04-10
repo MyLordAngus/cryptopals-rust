@@ -52,7 +52,7 @@ fn main()
 		// normalize it by dividing by size of block
 		for i in 0..chunks.len() {
 			let mut distance =
-			    bit_utils::hamming_distance(chunks[0], chunks[i]) as f32;
+			    f32::from(bit_utils::hamming_distance(chunks[0], chunks[i]));
 			distances.push(distance / keysize as f32);
 		}
 
@@ -108,8 +108,8 @@ fn main()
 	// --------------------------------------------------------------------
 
 	let decoded = xor::repeating_xor(&buffer, &key);
-	for c in 0..45 {
-		print!("{}", decoded[c] as char);
+	for c in decoded.iter().take(45) {
+		print!("{}", char::from(*c));
 	}
 	println!();
 }

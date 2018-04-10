@@ -9,14 +9,11 @@ pub fn fixed_xor(hex: &[u8], key: &[u8]) -> Result<Vec<u8>, ()>
 		return Err(());
 	}
 
-	let mut xor_vec: Vec<u8> = Vec::new();
-	let mut iter = hex.iter().zip(key);
+	let iter_map = hex.iter().zip(key).map(|tuple| {
+		xor(*tuple.0, *tuple.1)
+	});
 
-	while let Some(tuple) = iter.next() {
-		xor_vec.push(xor(*tuple.0, *tuple.1));
-	}
-
-	Ok(xor_vec)
+	Ok(iter_map.collect())
 }
 
 pub fn single_char_xor(hex: &[u8], key: u8) -> Vec<u8>

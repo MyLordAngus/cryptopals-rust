@@ -52,7 +52,7 @@ fn main()
 
 	let mut pad_buffer = buffer.as_bytes().to_vec();
 	pkcs::pkcs7_padding(&mut pad_buffer, block_size);
-	for b in pad_buffer.iter() {
+	for b in &pad_buffer {
 		let c = *b as char;
 		if c.is_alphanumeric() || c.is_whitespace() {
 			print!("{}", c);
