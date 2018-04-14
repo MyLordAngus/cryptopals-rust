@@ -5,3 +5,5 @@ authors = ["Amaury Denoyelle <amaury.denoyelle@gmail.com>"]
 
 [dependencies]
 openssl = "0.10.2"
+rand = "0.4"
+rand_derive = "0.3"
