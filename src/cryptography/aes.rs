@@ -2,6 +2,8 @@ use cryptography::openssl_lib;
 use cryptography::pkcs;
 use cryptography::xor;
 
+use rand;
+
 pub fn emulate_cbc_encrypt(key: &[u8], iv: &[u8], buf: &[u8]) ->
         Result<Vec<u8>, ()>
 {
@@ -27,4 +29,9 @@ pub fn emulate_cbc_encrypt(key: &[u8], iv: &[u8], buf: &[u8]) ->
 	}
 
 	Ok(encrypted)
+}
+
+pub fn generate_random_key() -> [u8; 16]
+{
+	rand::random::<[u8; 16]>()
 }
