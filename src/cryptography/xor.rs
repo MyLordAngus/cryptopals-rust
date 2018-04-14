@@ -19,9 +19,9 @@ pub fn fixed_xor(hex: &[u8], key: &[u8]) -> Result<Vec<u8>, ()>
 pub fn single_char_xor(hex: &[u8], key: u8) -> Vec<u8>
 {
 	let mut xor_vec: Vec<u8> = Vec::new();
-	let mut iter = hex.iter();
+	let iter = hex.iter();
 
-	while let Some(value) = iter.next() {
+	for value in iter {
 		xor_vec.push(xor(*value, key));
 	}
 
@@ -31,11 +31,11 @@ pub fn single_char_xor(hex: &[u8], key: u8) -> Vec<u8>
 pub fn repeating_xor(buf: &[u8], key: &[u8]) -> Vec<u8>
 {
 	let cycle = key.iter().cycle();
-	let mut zip = buf.iter().zip(cycle);
+	let zip = buf.iter().zip(cycle);
 
 	let mut xor_vec :Vec<u8> = vec![];
 
-	while let Some(v) = zip.next() {
+	for v in zip {
 		xor_vec.push(xor(*v.0, *v.1));
 	}
 

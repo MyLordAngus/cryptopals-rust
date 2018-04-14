@@ -7,10 +7,10 @@ pub fn emulate_cbc_encrypt(key: &[u8], iv: &[u8], buf: &[u8]) ->
 {
 	let mut encrypted = vec![];
 
-	let mut chunks = buf.chunks(key.len());
+	let chunks = buf.chunks(key.len());
 	let mut previous_block = iv.to_vec();
 
-	while let Some(chunk) = chunks.next() {
+	for chunk in chunks {
 		let mut pad_buffer = chunk.to_vec();
 		if pad_buffer.len() < key.len() {
 			pkcs::pkcs7_padding(&mut pad_buffer, key.len() as u8);

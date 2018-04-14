@@ -22,7 +22,7 @@ pub fn str_to_byte_array(s: &str) -> Result<Vec<u8>, ()>
 pub fn estimate_english_sentence(s: &str) -> u32
 {
 	let mut score: u32 = 0;
-	let mut chars = s.chars();
+	let chars = s.chars();
 
 	let probabilities: HashMap<char, u32> =
 	[('a', 43),
@@ -54,7 +54,7 @@ pub fn estimate_english_sentence(s: &str) -> u32
 	 (' ', 60),
 	].iter().cloned().collect();
 
-	while let Some(c) = chars.next() {
+	for c in chars {
 		// eliminate string with a non-ascii character
 		if ! c.is_ascii() {
 			return 0;

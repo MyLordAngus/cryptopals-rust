@@ -7,7 +7,7 @@ fn u8_slices_to_u32(slice: &[u8]) -> u32
 
 	let iter = slice.iter();
 	for &s in iter {
-		result = (result << 8) | (s as u32);
+		result = (result << 8) | (u32::from(s));
 	}
 
 	result
@@ -16,11 +16,11 @@ fn u8_slices_to_u32(slice: &[u8]) -> u32
 fn byte_to_base64_char(byte: u8) -> u8
 {
 	match byte {
-		0 ... 0b011001 => 'A' as u8 + byte,
-		0b011010 ... 0b110011 => 'a' as u8 + (byte - 0b011010),
-		0b110100 ... 0b111101 => '0' as u8 + (byte - 0b110100),
-		0b111110 => '+' as u8,
-		_ => '/' as u8
+		0 ... 0b01_1001 => b'A' + byte,
+		0b01_1010 ... 0b11_0011 => b'a' + (byte - 0b01_1010),
+		0b11_0100 ... 0b11_1101 => b'0' + (byte - 0b11_0100),
+		0b11_1110 => b'+',
+		_ => b'/'
 	}
 }
 
@@ -31,12 +31,12 @@ pub fn base64_encode(hex: &[u8]) -> Vec<u8>
 	if let Some((last_hex_chunk, hex_chunks)) =
 		hex.chunks(3).collect::<Vec<_>>().split_last() {
 
-		let mut hex_chunks_iter = hex_chunks.iter();
-		while let Some(hex_slice) = hex_chunks_iter.next() {
+		let hex_chunks_iter = hex_chunks.iter();
+		for hex_slice in hex_chunks_iter {
 			let hex_16bits = u8_slices_to_u32(hex_slice);
 
 			for j in 0..4 {
-				let c = byte_to_base64_char((hex_16bits >> 18 - (j * 6) & 0x3f) as u8);
+				let c = byte_to_base64_char((hex_16bits >> (18 - (j * 6)) & 0x3f) as u8);
 				base64.push(c);
 			}
 		}
@@ -44,26 +44,26 @@ pub fn base64_encode(hex: &[u8]) -> Vec<u8>
 		if last_hex_chunk.len() == 3 {
 			let hex_16bits = u8_slices_to_u32(last_hex_chunk);
 			for j in 0..4 {
-				let c = byte_to_base64_char((hex_16bits >> 18 - (j * 6) & 0x3f) as u8);
+				let c = byte_to_base64_char((hex_16bits >> (18 - (j * 6)) & 0x3f) as u8);
 				base64.push(c);
 			}
 
 		} else if last_hex_chunk.len() == 2 {
 			let hex_16bits = u8_slices_to_u32(last_hex_chunk);
 			for j in 0..3 {
-				let c = byte_to_base64_char((hex_16bits >> 12 - (j * 6) & 0x3f) as u8);
+				let c = byte_to_base64_char((hex_16bits >> (12 - (j * 6)) & 0x3f) as u8);
 				base64.push(c);
 			}
-			base64.push('=' as u8);
+			base64.push(b'=');
 
 		} else if last_hex_chunk.len() == 1 {
 			let hex_16bits = u8_slices_to_u32(last_hex_chunk);
 			for j in 0..2 {
-				let c = byte_to_base64_char((hex_16bits >> 6 - (j * 6) & 0x3f) as u8);
+				let c = byte_to_base64_char((hex_16bits >> (6 - (j * 6)) & 0x3f) as u8);
 				base64.push(c);
 			}
-			base64.push('=' as u8);
-			base64.push('=' as u8);
+			base64.push(b'=');
+			base64.push(b'=');
 		}
 	}
 
@@ -74,9 +74,9 @@ fn u32_to_u8_slice(four_bytes: u32) -> [u8; 4]
 {
 	let mut result: [u8; 4] = [0, 0, 0, 0];
 
-	for i in 0..4 {
-		result[i] = ((((four_bytes << (i * 8)) & 0xff000000) >> 24)
-		             & 0xff) as u8;
+	for (i, item) in result.iter_mut().take(4).enumerate() {
+		*item = ((((four_bytes << (i * 8)) & 0xff00_0000) >> 24)
+		         & 0xff) as u8;
 	}
 
 	result
@@ -91,9 +91,9 @@ pub fn base64_decode(buf: &str) -> Result<Vec<u8>, &'static str>
 		return Err("non 4-characters aligned base64 buffer");
 	}
 
-	let mut chunks = buf.as_bytes().chunks(4);
-	while let Some(four_chars) = chunks.next() {
-		if four_chars[0] == '=' as u8 || four_chars[1] == '=' as u8 {
+	let chunks = buf.as_bytes().chunks(4);
+	for four_chars in chunks {
+		if four_chars[0] == b'=' || four_chars[1] == b'=' {
 			return Err("use of '=' in a non-allowed position");
 		}
 
@@ -102,25 +102,25 @@ pub fn base64_decode(buf: &str) -> Result<Vec<u8>, &'static str>
 
 		let mut four_chars_iter = four_chars.iter();
 		while let Some(c) = four_chars_iter.next() {
-			if *c >= 'A' as u8 && *c <= 'Z' as u8 {
-				let byte: u8 = 0b000000 + (c - 'A' as u8);
-				three_bytes = (three_bytes << 6) | byte as u32;
-			} else if *c >= 'a' as u8 && *c <= 'z' as u8 {
-				let byte: u8 = 0b011010 + (c - 'a' as u8);
-				three_bytes = (three_bytes << 6) | byte as u32;
-			} else if *c >= '0' as u8 && *c <= '9' as u8 {
-				let byte: u8 = 0b110100 + (c - '0' as u8);
-				three_bytes = (three_bytes << 6) | byte as u32;
-			} else if *c == '+' as u8 {
-				let byte: u8 = 0b111110;
-				three_bytes = (three_bytes << 6) | byte as u32;
-			} else if *c == '/' as u8 {
-				let byte: u8 = 0b111111;
-				three_bytes = (three_bytes << 6) | byte as u32;
+			if *c >= b'A' && *c <= b'Z' {
+				let byte: u8 = c - b'A';
+				three_bytes = (three_bytes << 6) | u32::from(byte);
+			} else if *c >= b'a' && *c <= b'z' {
+				let byte: u8 = 0b01_1010 + (c - b'a');
+				three_bytes = (three_bytes << 6) | u32::from(byte);
+			} else if *c >= b'0' && *c <= b'9' {
+				let byte: u8 = 0b11_0100 + (c - b'0');
+				three_bytes = (three_bytes << 6) | u32::from(byte);
+			} else if *c == b'+' {
+				let byte: u8 = 0b11_1110;
+				three_bytes = (three_bytes << 6) | u32::from(byte);
+			} else if *c == b'/' {
+				let byte: u8 = 0b11_1111;
+				three_bytes = (three_bytes << 6) | u32::from(byte);
 
 			// special alignment character
-			} else if *c == '=' as u8 {
-				three_bytes = three_bytes >> 2;
+			} else if *c == b'=' {
+				three_bytes >>= 2;
 				bytes_count += 1;
 
 			// no other character is allowed in base64 encoding
