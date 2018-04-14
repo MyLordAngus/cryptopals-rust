@@ -33,6 +33,14 @@ use std::process;
 use cryptopals::cryptography::aes;
 use cryptopals::cryptography::pkcs;
 
+/// try to detect if a block has been encrypted using aes ecb
+/// in order to be meaningful, encrypted data size should be at least 32 bytes
+/// (2 times 16 bytes aes key)
+pub fn detect_aes_ecb(buf: &[u8]) -> bool
+{
+	buf.windows(32).any(|win| win[0..16] == win[16..32])
+}
+
 fn main()
 {
 	let mut file = File::open("./assets/set2_challenge10.txt")
@@ -50,5 +58,31 @@ fn main()
 		let oracle_result =
 			aes::encrypt_oracle(&rand_key, &pad_buffer)
 			  .unwrap_or_else(|_| { process::exit(1); });
+
+		if detect_aes_ecb(&oracle_result.1) {
+			println!("ECB detected");
+			assert_eq!(oracle_result.0, aes::CipherMode::ECB);
+		} else {
+			println!("CBC detected");
+			assert_eq!(oracle_result.0, aes::CipherMode::CBC);
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn detect_aes_ecb_test()
+	{
+		let buf = b"YELLOW SUBMARINEYELLOW SUBMARINE";
+		assert!(detect_aes_ecb(buf));
+
+		let buf = b"YELLOW SUBMARINEOTHER";
+		assert_eq!(detect_aes_ecb(buf), false);
+
+		let buf = b"";
+		assert_eq!(detect_aes_ecb(buf), false);
 	}
 }
