@@ -5,6 +5,8 @@ use cryptography::xor;
 use rand;
 use rand::Rng;
 
+use random;
+
 pub fn emulate_cbc_encrypt(key: &[u8], iv: &[u8], buf: &[u8]) ->
         Result<Vec<u8>, ()>
 {
@@ -51,18 +53,28 @@ pub fn encrypt_oracle(key: &[u8], buf: &[u8]) -> Result<EncOracleReturnType, ()>
 	let mut rng = rand::thread_rng();
 	let enc_buf;
 
+	// generate a random buffer of size between 5 and 10
+	let mut to_append_buf = Vec::with_capacity(rng.gen_range(5, 11));
+	random::random_fill(&mut to_append_buf);
+
+	// prepend and append random buffer before buffer to encrypt
+	let mut to_encrypt_buf = vec![];
+	to_encrypt_buf.extend_from_slice(&to_append_buf);
+	to_encrypt_buf.extend_from_slice(buf);
+	to_encrypt_buf.extend_from_slice(&to_append_buf);
+
 	let algorithm_rand: CipherMode = rng.gen();
 	match algorithm_rand {
 		CipherMode::ECB => {
 			// ecb encrypt
-			enc_buf = openssl_lib::aes_ecb_encrypt(key, buf)
+			enc_buf = openssl_lib::aes_ecb_encrypt(key, &to_encrypt_buf)
 			  .map_err(|_err| ())?;
 		},
 		CipherMode::CBC => {
 			// cbc encrypt
 			// for iv, use random data (same size as key)
 			let iv = generate_random_key();
-			enc_buf = emulate_cbc_encrypt(key, &iv, buf)?;
+			enc_buf = emulate_cbc_encrypt(key, &iv, &to_encrypt_buf)?;
 		},
 	}
 
